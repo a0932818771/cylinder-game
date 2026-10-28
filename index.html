@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>圓柱圓錐展開圖大賽車 - 線上版（含音效）</title>
+<style>
+  :root { --primary: #667eea; --secondary: #764ba2; --accent: #ff6b6b; --success: #00b894; --warn: #fdcb6e; }
+  * { box-sizing: border-box; }
+  body { font-family: "Microsoft JhengHei", "Noto Sans TC", sans-serif; background: linear-gradient(135deg, var(--primary), var(--secondary)); margin: 0; padding: 12px; color: #333; min-height: 100vh; }
+  #app { max-width: 980px; margin: 0 auto; }
+  .screen { display: none; text-align: center; animation: fadeIn .4s; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from {opacity:0} to {opacity:1} }
+  h1 { font-size: 2.2rem; color: #fff; text-shadow: 2px 2px 0 #000; margin: 0 0 8px; line-height: 1.2; }
+  .subtitle { color: #ffeaa7; font-size: 1.1rem; margin: 4px 0; }
+  .btn { background: var(--accent); color: #fff; border: none; padding: 12px 28px; font-size: 1.3rem; border-radius: 50px; cursor: pointer; box-shadow: 0 6px #d63031; font-family: inherit; transition: transform .1s; }
+  .btn:active { transform: translateY(6px); box-shadow: none; }
+  .btn:disabled { background: #b2bec3; box-shadow: 0 6px #636e72; cursor: not-allowed; }
+  .header { display: flex; gap: 10px; background: rgba(255,255,255,.92); padding: 10px 16px; border-radius: 14px; margin-bottom: 14px; box-shadow: 0 4px 12px rgba(0,0,0,.15); flex-wrap: wrap; justify-content: space-between; align-items: center; }
+  .stat { font-weight: bold; font-size: 1rem; }
+  .stat span { color: #e17055; }
+  #item-box { background: var(--warn); padding: 6px 14px; border-radius: 20px; font-weight: bold; color: #d63031; border: 2px solid #e17055; min-width: 150px; text-align: center; }
+  #star-bar { background: #00cec9; color: #fff; padding: 6px 14px; border-radius: 20px; font-weight: bold; display: none; border: 2px solid #00b894; }
+  #turn-indicator { background: rgba(255,255,255,.3); padding: 6px 14px; border-radius: 20px; font-weight: bold; color: #fff; }
+  #track { margin: 16px 0; }
+  .lane { display: flex; align-items: center; margin-bottom: 16px; position: relative; }
+  .lane-name { width: 110px; text-align: right; font-weight: bold; font-size: .95rem; color: #fff; text-shadow: 1px 1px 0 #000; padding-right: 8px; }
+  .track-bar { flex: 1; height: 32px; background: rgba(255,255,255,.18); border-radius: 16px; border: 3px solid #fff; position: relative; margin: 0 10px; overflow: visible; }
+  .progress { height: 100%; width: 0%; border-radius: 13px; transition: width .5s ease; }
+  .p-car { background: linear-gradient(90deg, #ff6b6b, #ee5a5a); }
+  .c-car { background: linear-gradient(90deg, #74b9ff, #0984e3); }
+  .car-icon { position: absolute; top: -8px; left: 0; font-size: 26px; z-index: 5; pointer-events: none; }
+  .finish { position: absolute; right: -30px; top: 50%; transform: translateY(-50%); font-size: 1.8rem; color: #fff; text-shadow: 1px 1px 0 #000; white-space: nowrap; }
+  #icons-row { display: flex; justify-content: center; gap: 34px; margin-bottom: 8px; font-size: 1.4rem; }
+  #icons-row span { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  #message { font-size: 1.25rem; font-weight: bold; color: #ffeaa7; text-shadow: 1px 1px 0 #000; margin: 10px 0; min-height: 30px; height: 30px; }
+  #question-area { background: rgba(255,255,255,.96); padding: 24px; border-radius: 20px; margin: 16px 0; box-shadow: 0 8px 24px rgba(0,0,0,.15); }
+  #question-text { font-size: 1.4rem; font-weight: bold; color: #2d3436; margin-bottom: 20px; min-height: 52px; display: flex; align-items: center; }
+  #options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .opt { background: #fff; border: 3px solid #b2bec3; padding: 16px 10px; font-size: 1.1rem; border-radius: 12px; cursor: pointer; transition: all .18s; text-align: center; }
+  .opt:hover { border-color: #00cec9; background: #d1f2eb; transform: translateY(-2px); }
+  .opt.correct { background: #55efc4 !important; border-color: #00b894; }
+  .opt.wrong { background: #ff7675 !important; border-color: #d63031; }
+  .opt:disabled { opacity: .6; cursor: not-allowed; }
+  #item-use { background: rgba(255,255,255,.96); padding: 18px; border-radius: 20px; margin: 12px 0; display: none; box-shadow: 0 8px 24px rgba(0,0,0,.15); }
+  #item-use.visible { display: block; }
+  #item-buttons { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .itm { background: var(--warn); border: 3px solid #e17055; padding: 12px 18px; border-radius: 12px; font-size: 1.25rem; cursor: pointer; color: #d63031; font-weight: bold; }
+  .itm:hover { background: #ffeaa7; transform: scale(1.05); }
+  #next-btn { display: none; margin: 10px auto 0 auto; }
+  #end-screen h1 { font-size: 2.5rem; margin-bottom: 12px; }
+  #end-screen p { color: #ffeaa7; font-size: 1.3rem; margin: 8px 0; }
+  .hidden { display: none !important; }
+  @media (max-width: 600px) { #options { grid-template-columns: 1fr; } .lane-name { width: 80px; font-size: .8rem; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="start-screen" class="screen active">
+    <h1>🏎️ 圓柱圓錐<br>展開圖大賽車</h1>
+    <div class="subtitle">📐 圓柱體展開圖 = 2 個圓 + 1 個長方形</div>
+    <div class="subtitle">🍦 圓錐體展開圖 = 1 個圓 + 1 個扇形</div>
+    <div class="subtitle">答對 5 題獲得隨機道具 / 答對 10 題獲得無敵星星 3 秒</div>
+    <button class="btn" id="btn-start">開始競賽</button>
+  </div>
+  <div id="game-screen" class="screen">
+    <div class="header">
+      <div class="stat">累計答對：<span id="correct-count">0</span> 題</div>
+      <div class="stat">排名：<span id="rank">1</span>/4</div>
+      <div id="item-box">道具欄：無</div>
+      <div id="star-bar">無敵星星：<span id="star-time">3</span>秒</div>
+      <div id="turn-indicator">🏁 你的回合</div>
+    </div>
+    <div id="icons-row">
+      <span>🏁 起點<br>第1格</span>
+      <span>❓ 題目格</span>
+      <span>⚡ 加速帶</span>
+      <span>🎁 道具格</span>
+      <span>⚠️ 陷阱格</span>
+      <span>🏁 終點</span>
+    </div>
+    <div id="track"></div>
+    <div id="message">準備好迎接第一題了嗎？</div>
+    <button id="roll-btn" class="btn" style="display:block;">🎲 掷骰子</button>
+    <div id="question-area" class="hidden">
+      <div id="question-text">題目顯示區</div>
+      <div id="options"></div>
+    </div>
+    <div id="item-use">
+      <p style="font-weight:bold; text-align:center; margin-bottom:10px;">選擇要使用的道具：</p>
+      <div id="item-buttons"></div>
+      <button class="btn" style="padding:10px 24px; font-size:1rem; background:#6c5ce7; box-shadow:0 6px #5e4fa2; margin-top:8px;" id="btn-cancel-item">取消</button>
+    </div>
+    <button id="next-btn" class="btn" style="background:var(--success); box-shadow:0 6px #009879;">下一步 →</button>
+  </div>
+  <div id="end-screen" class="screen">
+    <h1 id="result-title">遊戲結束！</h1>
+    <p id="result-text"></p>
+    <button class="btn" onclick="location.reload()">再玩一次</button>
+  </div>
+</div>
+<script>
+let audioCtx = null;
+function initAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+function playSfx(type) {
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  switch (type) {
+    case 'click': { const o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.connect(g);g.connect(audioCtx.destination); o.type='sine'; o.frequency.setValueAtTime(800,now); g.gain.setValueAtTime(.1,now); g.gain.exponentialRampToValueAtTime(.001,now+.1); o.start(now);o.stop(now+.1); break; }
+    case 'dice': { const o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.connect(g);g.connect(audioCtx.destination); o.type='square'; o.frequency.setValueAtTime(400,now); o.frequency.exponentialRampToValueAtTime(700,now+.15); g.gain.setValueAtTime(.08,now); g.gain.exponentialRampToValueAtTime(.001,now+.25); o.start(now);o.stop(now+.25); break; }
+    case 'correct': { [523,659,783].forEach((f,i)=>{ const o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.connect(g);g.connect(audioCtx.destination); o.type='sine'; o.frequency.setValueAtTime(f,now+i*.06); g.gain.setValueAtTime(.08,now+i*.06); g.gain.exponentialRampToValueAtTime(.001,now+i*.06+.25); o.start(now+i*.06);o.stop(now+i*.06+.25); }); break; }
+    case 'wrong': { const o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.connect(g);g.connect(audioCtx.destination); o.type='sawtooth'; o.frequency.setValueAtTime(220,now); o.frequency.linearRampToValueAtTime(100,now+.4); g.gain.setValueAtTime(.1,now); g.gain.exponentialRampToValueAtTime(.001,now+.4); o.start(now);o.stop(now+.4); break; }
+    case 'item': { const o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.connect(g);g.connect(audioCtx.destination); o.type='sine'; o.frequency.setValueAtTime(1000,now); g.gain.setValueAtTime(.1,now); g.gain.exponentialRampToValueAtTime(.001,now+.2); o.start(now);o.stop(now+.2); break; }
+    case 'star': { [1200,1500,1800].forEach((f,i)=>{ const o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.connect(g);g.connect(audioCtx.destination); o.type='square'; o.frequency.setValueAtTime(f,now+i*.08); g.gain.setValueAtTime(.1,now+i*.08); g.gain.exponentialRampToValueAtTime(.001,now+i*.08+.18); o.start(now+i*.08);o.stop(now+i*.08+.18); }); break; }
+    case 'trap': { const o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.connect(g);g.connect(audioCtx.destination); o.type='sawtooth'; o.frequency.setValueAtTime(150,now); o.frequency.linearRampToValueAtTime(80,now+.5); g.gain.setValueAtTime(.12,now); g.gain.linearRampToValueAtTime(.001,now+.5); o.start(now);o.stop(now+.5); break; }
+    case 'win': { [523,659,783,1046].forEach((f,i)=>{ const o=audioCtx.createOscillator(),g=audioCtx.createGain(); o.connect(g);g.connect(audioCtx.destination); o.type='triangle'; o.frequency.setValueAtTime(f,now+i*.15); g.gain.setValueAtTime(.1,now+i*.15); g.gain.exponentialRampToValueAtTime(.001,now+i*.15+.4); o.start(now+i*.15);o.stop(now+i*.15+.4); }); break; }
+  }
+}
+const QUESTIONS = [
+  { q: "圓柱體的展開圖共有幾個圓形？", a: ["1 個", "2 個", "3 個", "4 個"], correct: 1 },
+  { q: "圓柱體展開圖，除了圓形，還有什麼圖形？", a: ["三角形", "長方形", "扇形", "正方形"], correct: 1 },
+  { q: "圓柱體展開圖總共有幾個平面圖形？", a: ["2 個", "3 個", "4 個", "5 個"], correct: 1 },
+  { q: "圓錐體的展開圖共有幾個扇形？", a: ["1 個", "2 個", "3 個", "0 個"], correct: 0 },
+  { q: "圓錐體展開圖，除了圓形，還有什麼圖形？", a: ["長方形", "扇形", "三角形", "正方形"], correct: 1 },
+  { q: "圓錐體展開圖總共有幾個平面圖形？", a: ["1 個", "2 個", "3 個", "4 個"], correct: 1 },
+  { q: "哪種立體圖形的展開圖需要「扇形」？（圓柱 / 圓錐）", a: ["圓柱體", "圓錐體", "兩者都有", "兩者都沒有"], correct: 1 },
+  { q: "哪種立體圖形的展開圖需要「長方形」？（圓柱 / 圓錐）", a: ["圓柱體", "圓錐體", "兩者都有", "兩者都沒有"], correct: 0 },
+  { q: "要做 3 個圓柱體的展開圖，總共需要幾個圓？", a: ["3 個", "4 個", "6 個", "9 個"], correct: 2 },
+  { q: "要做 4 個圓錐體的展開圖，總共需要幾個扇形？", a: ["2 個", "4 個", "6 個", "8 個"], correct: 1 },
+  { q: "冰淇淋筒是圓錐體，它的展開圖會有扇形嗎？", a: ["會", "不會"], correct: 0 },
+  { q: "罐頭是圓柱體，它的展開圖會有長方形嗎？", a: ["會", "不會"], correct: 0 },
+  { q: "「圓柱體的展開圖有 1 個圓和 1 個長方形」，這個說法對嗎？", a: ["對", "錯"], correct: 1 },
+  { q: "「圓錐體的展開圖有 1 個圓和 1 個扇形」，這個說法對嗎？", a: ["對", "錯"], correct: 0 },
+  { q: "1 個圓柱體展開圖＋1 個圓錐體展開圖，總共有幾個圓？", a: ["1 個", "2 個", "3 個", "4 個"], correct: 2 },
+  { q: "圓柱體展開圖的長方形，其中一邊等於圓的什麼？", a: ["直徑", "半徑", "圓周長", "面積"], correct: 2 },
+  { q: "圓錐體展開圖的扇形，其圓心角與什麼有關？", a: ["圓錐的高", "底圓的圓周長", "扇形的面積", "扇形的半徑"], correct: 1 },
+  { q: "生活中哪個物品最像圓柱體？", a: ["冰淇淋筒", "罐頭罐", "氣球", "錐形帽子"], correct: 1 },
+  { q: "生活中哪個物品最像圓錐體？", a: ["汽水罐", "冰淇淋筒", "圓桶", "書本"], correct: 1 },
+  { q: "圓柱體：圓錐體展開圖的圖形數量分別是？", a: ["2:1", "3:2", "3:2", "4:2"], correct: 1 }
+];
+const ITEMS = [
+  { name: "香蕉皮", emoji: "🍌", type: "banana" },
+  { name: "綠龜殼", emoji: "🐢", type: "green" },
+  { name: "紅龜殼", emoji: "🐢", type: "red" },
+  { name: "炸彈", emoji: "💣", type: "bomb" },
+  { name: "超級蘑菇", emoji: "🍄", type: "mushroom" }
+];
+const FINISH = 20, TRAP = [10], ACCEL = [5,13], ITEM_SPACE = [8,16], Q_SPACE = [3,6,9,12,15,18];
+const game = {
+  players: [
+    { id:0, name:"你", pos:0, items:[], isPlayer:true },
+    { id:1, name:"電腦A", pos:0, items:[], isPlayer:false },
+    { id:2, name:"電腦B", pos:0, items:[], isPlayer:false },
+    { id:3, name:"電腦C", pos:0, items:[], isPlayer:false }
+  ],
+  correctCount:0, starTimer:0, starInterval:null, hasStar:false, usedQ:[], currentQ:null, phase:'roll', waitingItem:false,
+  init() {
+    this.correctCount=0; this.usedQ=[]; this.starTimer=0; this.hasStar=false;
+    clearInterval(this.starInterval);
+    document.getElementById("star-bar").style.display="none";
+    this.players.forEach(p=>{ p.pos=0; p.items=[]; });
+    this.phase='roll'; this.render(); this.updateUI();
+    document.getElementById("message").textContent="比賽開始！請掷骰子。";
+    document.getElementById("message").style.color="#ffeaa7";
+    document.getElementById("turn-indicator").textContent="🏁 你的回合";
+    document.getElementById("next-btn").style.display="none";
+    document.getElementById("item-use").classList.remove("visible");
+    document.getElementById("question-area").classList.add("hidden");
+    document.getElementById("roll-btn").style.display="block";
+    document.getElementById("roll-btn").disabled=false;
+  },
+  start() { initAudio(); playSfx('click'); document.getElementById("start-screen").classList.remove("active"); document.getElementById("game-screen").classList.add("active"); this.init(); },
+  render() {
+    const track=document.getElementById("track"); track.innerHTML="";
+    this.players.forEach((p,i)=>{
+      const lane=document.createElement("div"); lane.className="lane";
+      const name=document.createElement("div"); name.className="lane-name"; name.textContent=p.isPlayer?"🏁 你":p.name; lane.appendChild(name);
+      const bar=document.createElement("div"); bar.className="track-bar";
+      const prog=document.createElement("div"); prog.className="progress "+(p.isPlayer?"p-car":"c-car"); prog.style.width=(p.pos/FINISH*100)+"%"; bar.appendChild(prog);
+      const car=document.createElement("div"); car.className="car-icon"; car.textContent=p.isPlayer?"🏎️":"🚗"; car.style.left=Math.max(0,(p.pos/FINISH*100)-3)+"%"; bar.appendChild(car);
+      const fin=document.createElement("div"); fin.className="finish"; fin.textContent="🏁"; bar.appendChild(fin);
+      lane.appendChild(bar); track.appendChild(lane);
+    });
+    this.updateRank();
+  },
+  updateRank() { const s=[...this.players].sort((a,b)=>b.pos-a.pos); document.getElementById("rank").textContent=s.findIndex(p=>p.isPlayer)+1; },
+  updateUI() {
+    document.getElementById("correct-count").textContent=this.correctCount;
+    const box=document.getElementById("item-box"), p=this.players[0];
+    if(p.items.length===0){ box.textContent="道具欄：無"; box.style.background="#dfe6e9"; box.style.color="#636e72"; box.style.borderColor="#b2bec3"; }
+    else { box.textContent="道具："+p.items.map(it=>it.emoji).join(" "); }
+  },
+  async rollDice() {
+    if(this.phase!=='roll')return;
+    document.getElementById("roll-btn").disabled=true; playSfx('click');
+    const d=Math.floor(Math.random()*6)+1, p=this.players[0], from=p.pos;
+    p.pos=Math.min(FINISH,p.pos+d); this.render(); this.updateUI();
+    document.getElementById("message").textContent=`🎲 你掷出 ${d} 點！從第 ${from} 格前進到第 ${p.pos} 格。`;
+    await sleep(700); await this.handleLanding(p);
+  },
+  async handleLanding(p) {
+    const pos=p.pos; if(pos>=FINISH){ this.endGame(p); return; }
+    if(TRAP.includes(pos)){
+      if(this.hasStar){ document.getElementById("message").textContent="⭐ 無敵星星護體，陷阱無效！"; playSfx('star'); await sleep(800); this.phase='computer'; await this.computerTurns(); return; }
+      document.getElementById("message").textContent="⚠️ 落入陷阱格！退回起點！"; playSfx('trap');
+      p.pos=0; this.render(); this.updateUI(); await sleep(800); this.phase='computer'; await this.computerTurns(); return;
+    }
+    if(ACCEL.includes(pos)){
+      document.getElementById("message").textContent="⚡ 加速帶！額外前進 3 格。"; playSfx('item');
+      p.pos=Math.min(FINISH,p.pos+3); this.render(); this.updateUI(); await sleep(800);
+      if(p.pos>=FINISH){ this.endGame(p); return; }
+      this.phase='computer'; await this.computerTurns(); return;
+    }
+    if(ITEM_SPACE.includes(pos)){
+      this.giveRandomItem(0); document.getElementById("message").textContent="🎁 踩到道具格，獲得隨機道具！";
+      playSfx('item'); this.render(); this.updateUI(); await sleep(800);
+      this.phase='computer'; await this.computerTurns(); return;
+    }
+    if(Q_SPACE.includes(pos)){ this.phase='question'; document.getElementById("roll-btn").style.display="none"; document.getElementById("question-area").classList.remove("hidden"); this.presentQuestion(); return; }
+    this.phase='computer'; await this.computerTurns();
+  },
+  presentQuestion() {
+    if(this.usedQ.length>=QUESTIONS.length)this.usedQ=[];
+    let idx; do{ idx=Math.floor(Math.random()*QUESTIONS.length);}while(this.usedQ.includes(idx));
+    this.usedQ.push(idx); this.currentQ=QUESTIONS[idx];
+    document.getElementById("question-text").textContent=this.currentQ.q;
+    document.getElementById("options").innerHTML="";
+    this.currentQ.a.forEach((opt,i)=>{
+      const b=document.createElement("button"); b.className="opt"; b.textContent=opt; b.onclick=()=>this.selectAnswer(i);
+      document.getElementById("options").appendChild(b);
+    });
+    document.getElementById("message").textContent="請選擇正確答案！";
+    document.getElementById("message").style.color="#ffeaa7";
+    document.getElementById("next-btn").style.display="none";
+  },
+  selectAnswer(i) {
+    if(this.phase!=='question')return; playSfx('click');
+    const btns=document.querySelectorAll(".opt");
+    btns.forEach((b,j)=>{ b.disabled=true; if(j===this.currentQ.correct)b.classList.add("correct"); if(j===i&&j!==this.currentQ.correct)b.classList.add("wrong"); });
+    const ok=i===this.currentQ.correct, p=this.players[0], msg=document.getElementById("message");
+    if(ok){ this.correctCount++; p.pos=Math.min(FINISH,p.pos+3); msg.textContent="正確！🎉 額外前進 3 格。"; msg.style.color="#55efc4"; playSfx('correct'); this.checkMilestone(); }
+    else { msg.textContent="答錯了！正確答案："+this.currentQ.a[this.currentQ.correct]; msg.style.color="#ff7675"; playSfx('wrong'); }
+    this.render(); this.updateUI();
+    document.getElementById("next-btn").style.display="block"; this.phase='item';
+  },
+  checkMilestone() { const c=this.correctCount; if(c%10===0)this.giveStar(); else if(c%5===0)this.giveRandomItem(0); },
+  giveRandomItem(id) { const item=ITEMS[Math.floor(Math.random()*ITEMS.length)]; this.players[id].items.push(item); this.updateUI(); playSfx('item'); },
+  giveStar() {
+    this.hasStar=true; this.starTimer=3;
+    document.getElementById("star-bar").style.display="inline-block";
+    document.getElementById("star-time").textContent="3";
+    document.getElementById("message").textContent="⭐ 答對 10 題！獲得無敵星星 3 秒！";
+    document.getElementById("message").style.color="#00cec9"; playSfx('star');
+    clearInterval(this.starInterval);
+    this.starInterval=setInterval(()=>{ this.starTimer--; document.getElementById("star-time").textContent=this.starTimer; if(this.starTimer<=0){ clearInterval(this.starInterval); this.hasStar=false; document.getElementById("star-bar").style.display="none"; document.getElementById("message").textContent="⭐ 無敵時間結束。"; } },1000);
+  },
+  openItemMenu() {
+    const p=this.players[0];
+    if(p.items.length===0){ document.getElementById("message").textContent="你沒有道具喔！"; return; }
+    this.waitingItem=true; document.getElementById("item-use").classList.add("visible");
+    const cont=document.getElementById("item-buttons"); cont.innerHTML="";
+    p.items.forEach((it,idx)=>{ const b=document.createElement("button"); b.className="itm"; b.textContent=`${it.emoji} ${it.name}`; b.onclick=()=>this.useItem(idx); cont.appendChild(b); });
+  },
+  cancelItem() { playSfx('click'); this.waitingItem=false; document.getElementById("item-use").classList.remove("visible"); this.phase='computer'; document.getElementById("next-btn").style.display="none"; this.computerTurns(); },
+  useItem(idx) {
+    playSfx('click');
+    const p=this.players[0], it=p.items[idx]; p.items.splice(idx,1);
+    document.getElementById("item-use").classList.remove("visible"); this.waitingItem=false; this.updateUI();
+    let msg="";
+    switch(it.type){
+      case "banana": { const tg=this.players.filter(pl=>!pl.isPlayer&&pl.pos>0); if(tg.length){ const t=tg[Math.floor(Math.random()*tg.length)]; t.pos=Math.max(0,t.pos-2); msg=`🍌 香蕉皮！${t.name} 退後 2 格！`; } else msg="🍌 沒有可攻擊對手。"; break; }
+      case "green": { const tg=this.players.filter(pl=>!pl.isPlayer&&pl.pos>p.pos); if(tg.length){ const t=tg.reduce((a,b)=>a.pos>b.pos?a:b); t.pos=Math.max(0,t.pos-3); msg=`🐢 綠龜殼！${t.name} 退後 3 格！`; } else msg="🐢 前方無對手。"; break; }
+      case "red": { const l=this.players.filter(pl=>!pl.isPlayer).reduce((a,b)=>a.pos>b.pos?a:b); if(l&&l.pos>0){ l.pos=Math.max(0,l.pos-5); msg=`🐢 紅龜殼！${l.name} 退後 5 格！`; } else msg="🐢 無可攻擊對手。"; break; }
+      case "bomb": { let n=0; this.players.forEach(pl=>{ if(!pl.isPlayer&&pl.pos>0){ pl.pos=Math.max(0,pl.pos-2); n++; } }); msg=`💣 炸彈！${n} 位對手各退後 2 格。`; break; }
+      case "mushroom": { p.pos=Math.min(FINISH,p.pos+5); msg="🍄 超級蘑菇！你前進 5 格！"; break; }
+    }
+    document.getElementById("message").textContent=msg; this.render(); this.updateUI();
+    this.phase='computer'; document.getElementById("next-btn").style.display="none"; this.computerTurns();
+  },
+  nextStep() {
+    if(this.waitingItem)return;
+    const p=this.players[0];
+    if(this.phase==='item'&&p.items.length>0)this.openItemMenu();
+    else{ this.phase='computer'; document.getElementById("next-btn").style.display="none"; this.computerTurns(); }
+  },
+  async computerTurns() {
+    document.getElementById("turn-indicator").textContent="💻 電腦回合中…";
+    document.getElementById("next-btn").style.display="none";
+    document.getElementById("roll-btn").style.display="none";
+    for(let i=1;i<this.players.length;i++){
+      const p=this.players[i]; document.getElementById("turn-indicator").textContent=`💻 ${p.name} 的回合`;
+      await this.computerMove(p,i); this.render(); this.updateUI(); await sleep(600);
+      if(this.players.find(pl=>pl.pos>=FINISH))break;
+    }
+    const w=this.players.find(pl=>pl.pos>=FINISH); if(w){ this.endGame(w); return; }
+    this.phase='roll';
+    document.getElementById("turn-indicator").textContent="🏁 你的回合";
+    document.getElementById("roll-btn").style.display="block";
+    document.getElementById("roll-btn").disabled=false;
+    document.getElementById("question-area").classList.add("hidden");
+    document.getElementById("next-btn").style.display="none";
+  },
+  async computerMove(p,idx) {
+    const d=Math.floor(Math.random()*6)+1, from=p.pos;
+    p.pos=Math.min(FINISH,p.pos+d);
+    document.getElementById("message").textContent=`🎲 ${p.name} 掷出 ${d} 點！`; playSfx('dice');
+    this.render(); this.updateUI(); await sleep(700);
+    const pos=p.pos; if(pos>=FINISH)return;
+    if(TRAP.includes(pos)){ document.getElementById("message").textContent=`⚠️ ${p.name} 掉入陷阱，退回起點！`; playSfx('trap'); p.pos=0; this.render(); this.updateUI(); await sleep(700); return; }
+    if(ACCEL.includes(pos)){ document.getElementById("message").textContent=`⚡ ${p.name} 踩到加速帶！`; playSfx('item'); p.pos=Math.min(FINISH,p.pos+3); this.render(); this.updateUI(); await sleep(700); return; }
+    if(ITEM_SPACE.includes(pos)){ this.giveRandomItem(idx); document.getElementById("message").textContent=`🎁 ${p.name} 獲得道具！`; playSfx('item'); this.render(); this.updateUI(); await sleep(700); return; }
+    if(Q_SPACE.includes(pos)){
+      const ok=Math.random()<0.7;
+      if(ok){ p.pos=Math.min(FINISH,p.pos+3); document.getElementById("message").textContent=`✅ ${p.name} 答對了，前進 3 格！`; playSfx('correct'); }
+      else { document.getElementById("message").textContent=`❌ ${p.name} 答錯了！`; playSfx('wrong'); }
+      this.render(); this.updateUI(); await sleep(700); return;
+    }
+  },
+  endGame(w) {
+    clearInterval(this.starInterval); this.phase='end';
+    document.getElementById("game-screen").classList.remove("active");
+    document.getElementById("end-screen").classList.add("active");
+    const title=document.getElementById("result-title"), txt=document.getElementById("result-text"); playSfx('win');
+    if(w.isPlayer){ title.textContent="🏆 恭喜你奪冠！"; title.style.color="#55efc4"; txt.textContent=`你正確回答了 ${this.correctCount} 題，率先衝過終點！`; }
+    else { title.textContent=`😢 ${w.name} 奪得冠軍！`; title.style.color="#ff7675"; txt.textContent=`你正確回答了 ${this.correctCount} 題，下次再努力！`; }
+  }
+};
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+window.addEventListener('DOMContentLoaded',()=>{
+  const bS=document.getElementById('btn-start'), bR=document.getElementById('roll-btn'), bN=document.getElementById('next-btn'), bC=document.getElementById('btn-cancel-item');
+  if(bS)bS.addEventListener('click',()=>game.start());
+  if(bR)bR.addEventListener('click',()=>game.rollDice());
+  if(bN)bN.addEventListener('click',()=>game.nextStep());
+  if(bC)bC.addEventListener('click',()=>game.cancelItem());
+  window.game=game;
+});
+</script>
+</body>
+</html>
